@@ -1,0 +1,107 @@
+embedding:
+  app_vocab_size: null
+  app_output_vocab_size: null
+  app_emb_dim: &hidden_size 64    #64
+
+  start_time_vocab_size: 100 # 3 months + paddings  
+  start_time_discrete_list: [0, 1, 2, 4, 8, 16, 32, 64, 128, 256] #list(np.arange(6,23,2)) in days 
+  start_time_emb_dim: 64  #32
+
+  type_vocab_size: 3
+  type_vocab_emb_dim: 64
+
+  user_emb_dim: 4
+  user_vocab_size: 100000 # select 10w users for downstream finetune
+
+  cate_vocab_size: 67
+  cate_emb_dim: 64
+
+  codeword_dim: 64 # setting for VQ 
+  codebook_size: 32
+
+encoder:
+  hidden_size: 64 # 256
+  num_hidden_layers: 2
+  intermediate_size: 256 #512
+  num_attention_heads: 4 #8
+  hidden_dropout_prob: 0.1
+  attention_probs_dropout_prob: 0.1
+  max_position_embeddings: null
+  layer_norm_eps: 1.0e-8
+  hidden_act: 'gelu'
+  initializer_range: 0.02
+
+autoencoder:
+  app_vocab_size: null
+  hidden_sizes: [64,32]
+  loss_pos_weight: 300
+  noise_level: 0.1
+  epoch: 100
+  batch_size: 128
+  lr: 1.e-4
+
+
+#  bc transfomer config 
+trans_encoder: 
+  hidden_size:  *hidden_size  #引用之前必须先定义
+  num_hidden_layers: 2 #4
+  num_attention_heads: 4
+  intermediate_size: 256 #512
+  hidden_dropout_prob: 0.1
+  attention_probs_dropout_prob: 0.1
+  is_decoder: false
+  hidden_act: 'gelu'  #x\PHI(x) -->x*高斯分布的累积分布函数
+  layer_norm_eps: 1.0e-8
+  initializer_range: 0.02 #高斯方差
+
+  max_seq_len: 256 #序列长度
+  max_hierarchy_day: 15 # 序列最大分割天数
+  mlm_prob: 0.15  #0.15 #掩码概率
+
+  pos_emb: True  # position False 
+  time_emb: False
+  wday_emb: False
+  dur_emb: False
+
+max_seq_len: 256
+mlm_prob: 0.15 #掩码概率
+MODEL: TEST  #TRAIN
+
+train:
+  learning_rate: 1.0e-4
+  n_gpu: 4
+  per_gpu_batch_size: 32
+  gradient_accum_steps: 1
+  max_grad_norm: 1.0
+  epoch: 50
+  max_steps: 100000000 # override  epoch
+  weight_decay: 1.0e-7  #1.0e-3 #l2 regulezation
+  adam_epsilon: 1.0e-8
+  warmup_steps: 5000
+  start_epoch: 0 
+  seed: 42
+  logging_step: 12000
+  with_cate: True # whether use app category
+
+  early_stop_patience: 2 #epoch
+
+eval:
+  per_gpu_batch_size: 256
+  idx: 0
+  date: 7
+
+
+finetune:
+  flag: False # is_finetune
+  mlp_hidden_units: [64, 32]
+
+
+contrastive:
+  neg_num: 31
+  sample_len: 5
+
+  
+
+
+
+
